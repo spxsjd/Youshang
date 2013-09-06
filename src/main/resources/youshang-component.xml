@@ -7,7 +7,7 @@
 		class="org.springframework.context.support.ClassPathXmlApplicationContext">
 		<constructor-arg>
 			<list>
-				<value>youshang-component.xml</value>
+				<value>youshang-persistence.xml</value>
 			</list>
 		</constructor-arg>
 	</bean>
