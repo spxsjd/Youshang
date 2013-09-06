@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE generatorConfiguration PUBLIC "-//mybatis.org//DTD MyBatis Generator Configuration 1.0//EN" "http://mybatis.org/dtd/mybatis-generator-config_1_0.dtd" >
+<generatorConfiguration>
+	<classPathEntry
+		location="/Users/sunpeng/.m2/repository/mysql/mysql-connector-java/5.1.14/mysql-connector-java-5.1.14.jar" />
+	<context id="youshang">
+
+		<plugin type="org.mybatis.generator.plugins.RowBoundsPlugin"></plugin>
+
+		<jdbcConnection driverClass="com.mysql.jdbc.Driver"
+			connectionURL="jdbc:mysql://127.0.0.1:3306/youshang?useUnicode=true&amp;characterEncoding=utf-8"
+			userId="admin" password="admin@youka" />
+		<javaModelGenerator targetPackage="com.zoo.youshang.entity"
+			targetProject="youshang" />
+		<sqlMapGenerator targetPackage="com.zoo.youshang.persistence"
+			targetProject="youshang" />
+		<javaClientGenerator targetPackage="com.zoo.youshang.persistence"
+			targetProject="youshang" type="XMLMAPPER" />
+        <!-- 
+		<table schema="" tableName="vms_member_info" domainObjectName="MemberInfo">
+			<columnOverride column="uid" javaType="java.lang.Long" />
+			<columnOverride column="comment" javaType="java.lang.String" />
+			<columnOverride column="companyname" javaType="java.lang.String" />
+			<columnOverride column="telephone" javaType="java.lang.String" />
+			<columnOverride column="fax" javaType="java.lang.String" />
+			<columnOverride column="province" javaType="java.lang.String" />
+			<columnOverride column="city" javaType="java.lang.String" />
+			<columnOverride column="address" javaType="java.lang.String" />
+			<columnOverride column="zip" javaType="java.lang.Long" />
+			<columnOverride column="description" javaType="java.lang.String" />
+			<columnOverride column="contact_name" javaType="java.lang.String" />
+			<columnOverride column="contact_telephone" javaType="java.lang.String" />
+			<columnOverride column="mobile" javaType="java.lang.String" />
+			<columnOverride column="logo" javaType="java.lang.String" />
+			<columnOverride column="logourl" javaType="java.lang.String" />
+			<columnOverride column="water" javaType="java.lang.String" />
+			<columnOverride column="loading_bg" javaType="java.lang.String" />
+			<columnOverride column="showlogo" javaType="java.lang.Boolean" />
+			<columnOverride column="website" javaType="java.lang.Boolean" />
+		</table>
+        -->
+        <table schema="" tableName="member_profile" domainObjectName="MemberProfile">
+			<columnOverride column="id" javaType="java.lang.Long" />
+		</table>
+		<table schema="" tableName="task_profile" domainObjectName="TaskProfile">
+			<columnOverride column="id" javaType="java.lang.Long" />
+			<columnOverride column="sponsor_id" javaType="java.lang.Long" />
+			<columnOverride column="executor_id" javaType="java.lang.Long" />
+		</table>
+		<table schema="" tableName="task_acceptance" domainObjectName="TaskAcceptance">
+			<columnOverride column="id" javaType="java.lang.Long" />
+			<columnOverride column="task_id" javaType="java.lang.Long" />
+			<columnOverride column="acceptor_id" javaType="java.lang.Long" />
+		</table>
+		<table schema="" tableName="comment" domainObjectName="Comment">
+			<columnOverride column="id" javaType="java.lang.Long" />
+			<columnOverride column="commenter_id" javaType="java.lang.Long" />
+			<columnOverride column="assessee_id" javaType="java.lang.Long" />
+			<columnOverride column="task_id" javaType="java.lang.Long" />
+		</table>
+	</context>
+</generatorConfiguration>

@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:aop="http://www.springframework.org/schema/aop"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+		http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+
+	<bean id="dataSouceConfig" factory-method="valueOf"
+		class="com.zoo.youshang.config.ConfigurationItem">
+		<constructor-arg value="DataSource" />
+	</bean>
+	
+	<bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="properties">
+			<bean factory-method="getConfiguration" factory-bean="dataSouceConfig"/>
+		</property>
+	</bean>
+	
+	<bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource">
+		<property name="driverClassName" value="${datasource.driver}" />
+		<property name="url" value="${datasource.url}" />
+		<property name="username" value="${datasource.username}" />
+		<property name="password" value="${datasource.password}" />
+		<property name="minIdle" value="${datasource.min.idle}" />
+		<property name="maxIdle" value="${datasource.max.idle}" />
+		<property name="maxActive" value="${datasource.max.active}" />
+		<property name="testOnBorrow" value="true" />
+		<property name="validationQuery" value="SELECT 1 FROM DUAL" />
+	</bean>
+
+	<bean id="transactionManager"
+		class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+
+	<bean id="transactionOperations"
+		class="org.springframework.transaction.support.TransactionTemplate">
+		<property name="transactionManager" ref="transactionManager" />
+	</bean>
+
+	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="dataSource" />
+		<property name="typeAliasesPackage" value="com.zoo.youshang.entity" />
+		<property name="mapperLocations" value="classpath*:com/zoo/youshang/persistence/*.xml" />
+		<property name="plugins">
+			<array>
+				<bean class="com.zoo.youshang.persistence.paging.PagingInterceptor" />
+			</array>
+		</property>
+		<property name="configurationProperties">
+			<props>
+				<prop key="dialect">com.zoo.youshang.persistence.paging.MysqlDialect</prop>
+			</props>
+		</property>
+	</bean>
+
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="com.zoo.youshang.persistence" />
+		<property name="sqlSessionFactoryBeanName" value="sqlSessionFactory" />
+	</bean>
+
+</beans>

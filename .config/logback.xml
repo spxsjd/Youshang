@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<configuration scan="true" scanPeriod="1000" >
+    
+    <statusListener class="ch.qos.logback.core.status.OnConsoleStatusListener" />
+    <!--
+    <conversionRule conversionWord="L" converterClass="com.snda.cloud.vms.util.LogFieldMarkerConverter" />
+    -->
+    <property name="file.log.base.path" value="${log.base.path}" />
+    <property name="file.log.max.history" value="30" />
+    <property name="file.log.max.size" value="5MB" />
+   
+    <appender name="CONSOLE_ALL" class="ch.qos.logback.core.ConsoleAppender">
+    	<append>true</append>
+      <encoder>  
+        <pattern>%date{ISO8601} %level [%thread] [%class - %method] - [%message]%n</pattern>
+      </encoder>
+    </appender>
+    
+    <appender name="FILE_ALL" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    	<file>${file.log.base.path}/all.log</file>
+    	<append>true</append>
+    	<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+    		<maxHistory>${file.log.max.history}</maxHistory>
+    		<fileNamePattern>${file.log.base.path}/all.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+    		<timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+    			<maxFileSize>${file.log.max.size}</maxFileSize>
+    		</timeBasedFileNamingAndTriggeringPolicy>
+    	</rollingPolicy>
+      <encoder>  
+        <pattern>%date{ISO8601} %level [%thread] [%class - %method] - [%message]%n</pattern>
+      </encoder>
+    </appender>
+    
+    <appender name="FILE_DEBUG" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    	<file>${file.log.base.path}/debug.log</file>
+    	<append>true</append>
+    	<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+    		<maxHistory>${file.log.max.history}</maxHistory>
+    		<fileNamePattern>${file.log.base.path}/debug.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+    		<timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+    			<maxFileSize>${file.log.max.size}</maxFileSize>
+    		</timeBasedFileNamingAndTriggeringPolicy>
+    	</rollingPolicy>
+      <encoder>  
+        <pattern>%date{ISO8601} %level [%thread] [%class - %method] - [%message]%n</pattern>
+      </encoder>
+ 			<filter class="ch.qos.logback.classic.filter.LevelFilter">
+ 				<level>DEBUG</level>
+ 				<onMatch>ACCEPT</onMatch>
+ 				<onMismatch>DENY</onMismatch>
+ 			</filter>
+    </appender>
+    
+    <appender name="FILE_INFO" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    	<file>${file.log.base.path}/info.log</file>
+    	<append>true</append>
+    	<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+    		<maxHistory>${file.log.max.history}</maxHistory>
+    		<fileNamePattern>${file.log.base.path}/info.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+    		<timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+    			<maxFileSize>${file.log.max.size}</maxFileSize>
+    		</timeBasedFileNamingAndTriggeringPolicy>
+    	</rollingPolicy>
+      <encoder>  
+        <pattern>%date{ISO8601} %level [%thread] [%class - %method] - [%message]%n</pattern>
+      </encoder>
+ 			<filter class="ch.qos.logback.classic.filter.LevelFilter">
+ 				<level>INFO</level>
+ 				<onMatch>ACCEPT</onMatch>
+ 				<onMismatch>DENY</onMismatch>
+ 			</filter>
+    </appender>
+    
+		<appender name="FILE_ERROR" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    	<file>${file.log.base.path}/error.log</file>
+    	<append>true</append>
+    	<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+    		<maxHistory>${file.log.max.history}</maxHistory>
+    		<fileNamePattern>${file.log.base.path}/error.%d{yyyy-MM-dd}.log</fileNamePattern>
+    	</rollingPolicy>
+      <encoder>  
+        <pattern>%date{ISO8601} %level [%thread] [%class - %method] - [%message]%n</pattern>
+      </encoder>
+ 			<filter class="ch.qos.logback.classic.filter.LevelFilter">
+ 				<level>ERROR</level>
+ 				<onMatch>ACCEPT</onMatch>
+ 				<onMismatch>DENY</onMismatch>
+ 			</filter>
+    </appender>
+    <!--
+    <appender name="APPENDER_INVOCATION" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    	<file>${file.log.base.path}/invocation.log</file>
+    	<append>true</append>
+    	<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+    		<maxHistory>${file.log.max.history}</maxHistory>
+    		<fileNamePattern>${file.log.base.path}/invocation.%d{yyyy-MM-dd}.log</fileNamePattern>
+    	</rollingPolicy>
+      <encoder>  
+        <pattern>%date{ISO8601} Elapsed:%L{elapsed},Method:%L{method},Query:%L{query},Address:%L{address} [%message]%n</pattern>
+      </encoder>
+    </appender>
+ 		
+ 		<logger name="com.snda.cloud.vms.api.log.InvocationLogger" additivity="false">
+			<appender-ref ref="APPENDER_INVOCATION"/>
+		</logger>
+		
+		<appender name="APPENDER_QUOTA" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    	<file>${file.log.base.path}/quota.log</file>
+    	<append>true</append>
+    	<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+    		<maxHistory>${file.log.max.history}</maxHistory>
+    		<fileNamePattern>${file.log.base.path}/quota.%d{yyyy-MM-dd}.log</fileNamePattern>
+    	</rollingPolicy>
+      <encoder>  
+        <pattern>%date{ISO8601} Uid:%L{uid},Quota:%L{quota} [%message]%n</pattern>
+      </encoder>
+    </appender>
+ 		
+ 		<logger name="com.snda.cloud.vms.biz.QuotaLogger" additivity="false">
+			<appender-ref ref="APPENDER_QUOTA"/>
+		</logger>
+		-->
+    <root level="INFO">
+    		<appender-ref ref="FILE_DEBUG"/>
+        <appender-ref ref="FILE_INFO"/>
+        <appender-ref ref="FILE_ERROR"/>
+        <appender-ref ref="FILE_ALL"/>
+        <!-- <appender-ref ref="CONSOLE_ALL"/> -->
+        
+    </root>
+
+</configuration>
