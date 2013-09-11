@@ -9,7 +9,9 @@
 		<constructor-arg value="DataSource" />
 	</bean>
 	
-	<bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+	<bean id="persistenceProperties" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="order" value="1" />  
+    	<property name="ignoreUnresolvablePlaceholders" value="true" /> 
 		<property name="properties">
 			<bean factory-method="getConfiguration" factory-bean="dataSouceConfig"/>
 		</property>

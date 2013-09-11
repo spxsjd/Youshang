@@ -17,7 +17,7 @@ public class MemberProfileMapperTest extends AbstractMapperTest {
 	@Test
 	public void test() {
 
-		MemberProfileMapper mapper = super.getMapper(MemberProfileMapper.class);
+		MemberProfileMapper mapper = super.getBean(MemberProfileMapper.class);
 		System.out.println("-------" + mapper.getClass());
 		System.out.println("-------" + ConfigurationItem.DataSource.getConfigFullPath());
 		MemberProfile member = mapper.selectByPrimaryKey(1l);

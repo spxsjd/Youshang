@@ -9,6 +9,7 @@
 		<constructor-arg>
 			<list>
 				<value>youshang-persistence.xml</value>
+				<value>youshang-cache.xml</value>
 			</list>
 		</constructor-arg>
 	</bean>

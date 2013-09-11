@@ -11,34 +11,43 @@ import java.util.Properties;
 public enum ConfigurationItem {
 
 	/**
-	 * Logback日志配置文件
+	 * Logback������������������
 	 */
 	Log("logback.xml"),
 
 	/**
-	 * 上下文总体配置文件
+	 * ���������������������������
 	 */
 	Context("context.properties"),
 
 	/**
-	 * 消息内容配置文件
+	 * ������������������������
 	 */
 	Message("message.properties"),
-	
+
 	/**
-	 * 数据库配置文件
+	 * ���������������������
 	 */
 	DataSource("datasource.properties"),
 
 	/**
-	 * 测试配置文件
+	 * ������������������
 	 */
 	Test("test.properties"),
 
 	/**
-	 * 定时任务配置文件
+	 * ������������������������
 	 */
-	Task("task.properties");
+	Task("task.properties"),
+
+	/**
+	 * 缓存配置
+	 */
+	Cache("cache.properties"),
+	/**
+	 * 上传配置
+	 */
+	Upload("upload.properties");
 
 	private String fileName;
 
@@ -71,7 +80,8 @@ public enum ConfigurationItem {
 	 * @return properties object
 	 */
 	public Properties getConfiguration() {
-		Properties p = Configuration.getInstance().getConfiguration(this.fileName);
+		Properties p = Configuration.getInstance().getConfiguration(
+				this.fileName);
 		return p;
 	}
 
@@ -83,7 +93,8 @@ public enum ConfigurationItem {
 	 * @return property value
 	 */
 	public String getConfigurationValue(String name) {
-		Properties properties = Configuration.getInstance().getConfiguration(this.fileName);
+		Properties properties = Configuration.getInstance().getConfiguration(
+				this.fileName);
 		if (properties == null) {
 			return null;
 		} else {

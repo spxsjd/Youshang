@@ -2,18 +2,14 @@ package com.zoo.youshang.persistence;
 
 import org.springframework.context.support.GenericXmlApplicationContext;
 
+import com.zoo.youshang.AbstractTest;
+
 /**
  * @author chenquanzhao
  */
-public abstract class AbstractMapperTest {
-	private final GenericXmlApplicationContext context = new GenericXmlApplicationContext(getConfigLocations());
+public abstract class AbstractMapperTest extends AbstractTest{
 
-	@SuppressWarnings("unchecked")
-	public <T> T getMapper(Class<?> cls) {
-		return (T) context.getBean(cls);
-	}
-
-	private String[] getConfigLocations() {
+	protected String[] getConfigLocations() {
 		return new String[] { "classpath:/youshang-persistence.xml" };
 	}
 

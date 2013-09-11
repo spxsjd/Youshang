@@ -4,18 +4,24 @@
 package com.zoo.youshang.api.data;
 
 import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  * @author sunpeng.peng
  * 
  */
-
+@XmlRootElement(
+        name = "Response")
 public class ServiceEntity {
 
 	private Object data;
 	private String requestId;
 	private ServiceCode serviceCode;
 	
+	
+	public static ServiceEntity done(){
+		return new ServiceEntity();
+	}
 	public ServiceEntity() {
 		this.requestId = ServiceContext.get().getRequestId();
 		this.serviceCode = Codes.Successful;

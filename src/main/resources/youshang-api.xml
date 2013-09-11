@@ -20,4 +20,5 @@
 		<context:include-filter type="annotation" expression="javax.ws.rs.ext.Provider" />
 		 -->
 	</context:component-scan>
+	
 </beans>

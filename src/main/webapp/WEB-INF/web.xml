@@ -8,19 +8,25 @@
 		<param-value>END</param-value> </context-param> -->
 	<!-- <context-param> <param-name>resteasy.scan.resources</param-name> <param-value>true</param-value> 
 		</context-param> 
-		-->
+	
+	<context-param>
+	  <param-name>resteasy.media.type.mappings</param-name>
+	  <param-value>json:application/json</param-value>
+	</context-param>
+		--> 
 	<context-param>
 		<param-name>resteasy.logger.type</param-name>
 		<param-value>SLF4J</param-value>
 	</context-param>
 	<context-param>
 		<param-name>resteasy.providers</param-name>
-		<param-value>com.zoo.youshang.api.injection.DefaultInjectorFactory,
-		com.zoo.youshang.api.error.ExceptionMapper,
-		org.jboss.resteasy.plugins.providers.jackson.ResteasyJacksonProvider,
-		com.zoo.youshang.api.protocol.InvocationPostInterceptor</param-value>
+		<param-value>com.zoo.youshang.api.error.ExceptionMapper
+		,com.zoo.youshang.api.protocol.ResolveResultInterceptor
+	</param-value>
 	</context-param>
 	<!-- 
+	org.jboss.resteasy.plugins.providers.jaxb.json.JettisonXmlRootElementProvider,
+	org.jboss.resteasy.plugins.providers.jackson.ResteasyJacksonProvider,
 	<context-param>
 		<param-name>resteasy.scan.providers</param-name>
 		<param-value>true</param-value>

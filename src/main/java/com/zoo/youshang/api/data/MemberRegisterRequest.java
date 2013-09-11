@@ -5,6 +5,8 @@ package com.zoo.youshang.api.data;
 
 import javax.ws.rs.QueryParam;
 
+import com.google.gson.Gson;
+
 /**
  * @author sunpeng
  * 
@@ -62,6 +64,9 @@ public class MemberRegisterRequest {
 		this.name = name;
 	}
 
-	
+	public String toString() {
+		return (new Gson()).toJson(this);
+	}
 
+	
 }

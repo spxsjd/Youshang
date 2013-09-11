@@ -3,10 +3,11 @@
  */
 package com.zoo.youshang.api.error;
 
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.ext.Provider;
 
-import org.jboss.resteasy.core.ServerResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,22 +19,26 @@ import com.zoo.youshang.api.data.ServiceEntity;
  * 
  */
 @Provider
-public class ExceptionMapper implements javax.ws.rs.ext.ExceptionMapper<Throwable> {
+public class ExceptionMapper implements
+		javax.ws.rs.ext.ExceptionMapper<Throwable> {
 
-	private static final Logger logger = LoggerFactory.getLogger(ExceptionMapper.class);
+	private static final Logger logger = LoggerFactory
+			.getLogger(ExceptionMapper.class);
 
 	@Override
-	
 	public Response toResponse(Throwable exception) {
-		ServerResponse response = new ServerResponse();
-		logger.error("Service exception[type:" + exception.getClass() + ",message:" + exception.getMessage() + "]");
+		ServiceEntity entity;
 		if (exception instanceof ServiceBizException) {
-			response.setEntity(new ServiceEntity(((ServiceBizException) exception).getServiceCode()));
+			entity = new ServiceEntity(
+					((ServiceBizException) exception).getServiceCode());
 		} else {
-			response.setEntity(new ServiceEntity(Codes.UnkownError));
+			logger.error("Service exception[type => " + exception.getClass()
+					+ ", message => " + exception.getMessage() + "]: ",
+					exception);
+			entity = new ServiceEntity(Codes.UnkownError);
 		}
-		response.setStatus(400);
-		return response;
+		return Response.status(Status.BAD_REQUEST).entity(entity)
+				.type(MediaType.APPLICATION_JSON).build();
 	}
 
 }

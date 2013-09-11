@@ -3,14 +3,35 @@
  */
 package com.zoo.youshang.api;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.sql.SQLIntegrityConstraintViolationException;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
+import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response;
 
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.math.RandomUtils;
+import org.jboss.resteasy.annotations.Form;
+import org.jboss.resteasy.plugins.providers.multipart.InputPart;
+import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +39,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.zoo.youshang.api.data.Codes;
 import com.zoo.youshang.api.data.MemberRegisterRequest;
 import com.zoo.youshang.api.error.ServiceAssert;
+import com.zoo.youshang.api.error.ServiceAssert.Executor;
+import com.zoo.youshang.api.error.ServiceBizException;
+import com.zoo.youshang.api.protocol.BigFileOutputStream;
+import com.zoo.youshang.cache.MemberProfileCacher;
+import com.zoo.youshang.config.Configuration;
+import com.zoo.youshang.config.ConfigurationItem;
 import com.zoo.youshang.entity.MemberProfile;
+import com.zoo.youshang.entity.MemberProfileExample;
 import com.zoo.youshang.persistence.MemberProfileMapper;
 import com.zoo.youshang.util.MD5Util;
 
@@ -34,19 +62,54 @@ public class MemberService {
 	@Autowired
 	private MemberProfileMapper memberProfileMapper;
 
+	@Autowired
+	private MemberProfileCacher memberProfileCacher;
+
+	private String avatorBasicPath;
+	private List<String> avatorTypes;
+	private String avatorDefaultFile;
+
+	public MemberService() {
+		String defaultAvatorPath = Configuration.getInstance()
+				.getConfigFullPath("avators");
+		this.avatorBasicPath = ConfigurationItem.Upload.getConfigurationValue(
+				"upload.avator.path", defaultAvatorPath);
+		File file = new File(this.avatorBasicPath);
+		if (!file.exists()) {
+			file.mkdirs();
+		}
+
+		String[] types = ConfigurationItem.Upload
+				.getConfigurationValue("upload.avator.types", ".jpg,.gif,.png")
+				.toLowerCase().split(",");
+		this.avatorTypes = Arrays.asList(types);
+
+		this.avatorDefaultFile = ConfigurationItem.Upload
+				.getConfigurationValue("avator.default.file", "default.png");
+	}
+
 	@POST
-	public MemberProfile register(MemberRegisterRequest request) {
+	public MemberProfile register(@Form MemberRegisterRequest request) {
+		logger.debug("Register member: " + request.toString());
 		Date current = new Date();
-		MemberProfile profile = new MemberProfile();
-		profile.setAvatarPath("");
+		final MemberProfile profile = new MemberProfile();
+		profile.setAvatarPath(this.avatorDefaultFile);
 		profile.setCreateTime(current);
 		profile.setLastLoginTime(current);
 		profile.setMobile(request.getMobile());
 		profile.setName(request.getName());
 		profile.setPassword(MD5Util.encode(request.getPassword()));
 		profile.setUsername(request.getUsername());
-		profile.setWeibo(request.getMobile());
-		memberProfileMapper.insert(profile);
+		profile.setWeibo(request.getWeibo());
+		ServiceAssert.checkExecutor(new Executor<Void>() {
+			@Override
+			public Void execute() {
+				memberProfileMapper.insert(profile);
+				return null;
+			}
+
+		}, SQLIntegrityConstraintViolationException.class,
+				Codes.MemberIdentityHasExist);
 		return profile;
 	}
 
@@ -62,7 +125,14 @@ public class MemberService {
 	@Path("/login")
 	public void login(@QueryParam("mobile") String mobile,
 			@QueryParam("password") String password) {
-
+		MemberProfileExample example = new MemberProfileExample();
+		example.createCriteria().andMobileEqualTo(mobile);
+		List<MemberProfile> list = memberProfileMapper.selectByExample(example);
+		ServiceAssert.notEmpty(list, Codes.MemberNotFound);
+		MemberProfile profile = list.get(0);
+		String md5password = MD5Util.encode(password);
+		ServiceAssert.isTrue(md5password.equals(profile.getPassword()),
+				Codes.MemberPasswordError);
 	}
 
 	@PUT
@@ -71,23 +141,113 @@ public class MemberService {
 
 	}
 
-	@POST
-	@Path("/avatar")
-	public void modifyAvatar() {
+	@GET
+	@Path("/avator")
+	@Produces(MediaType.APPLICATION_OCTET_STREAM)
+	public Response queryAvator(@QueryParam("id") Long id) {
 
+		MemberProfile profile = this.query(id);
+		String avatorFileName = (StringUtils.isBlank(profile.getAvatarPath()) ? this.avatorDefaultFile
+				: profile.getAvatarPath());
+		String avatorPath = this.avatorBasicPath
+				+ System.getProperty("file.separator") + avatorFileName;
+		try {
+			FileInputStream fileStream = new FileInputStream(avatorPath);
+			// 直接返回输出流
+			return Response
+					.ok(new BigFileOutputStream(fileStream))
+					.header("Content-Disposition",
+							"attachment; filename=\"" + avatorFileName + "\"")
+					.build();
+		} catch (FileNotFoundException e) {
+			logger.error("Not found the uploaded avator.", e);
+			throw new ServiceBizException(Codes.AvatorNotExist);
+		}
+
+	}
+
+	@POST
+	@Path("/avator")
+	@Consumes(MediaType.MULTIPART_FORM_DATA)
+	public void modifyAvator(@QueryParam("id") Long id,
+			MultipartFormDataInput formDataInput) {
+		Map<String, List<InputPart>> uploadForm = formDataInput
+				.getFormDataMap();// 提交的form表单
+		List<InputPart> inputParts = uploadForm.get("file");// 从form表单中获取name="file"的元素内容
+		ServiceAssert.isTrue(inputParts.size() > 0, Codes.AvatorNotUpload);
+		InputPart inputPart = inputParts.get(0);
+		MultivaluedMap<String, String> header = inputPart.getHeaders();
+		String fileName = getFileName(header);
+		String fileType = fileName.substring(fileName.indexOf('.'));
+		ServiceAssert.isTrue(this.avatorTypes.contains(fileType),
+				Codes.AvatorTypeInvalid);
+		try {
+			
+			String savedFileName = id.toString() + fileType;
+			String savedFilePath = this.avatorBasicPath
+					+ System.getProperty("file.separator") + savedFileName;
+
+			MemberProfile profile = new MemberProfile();
+			profile.setId(id);
+			profile.setAvatarPath(savedFileName);
+			int count = memberProfileMapper
+					.updateByPrimaryKeySelective(profile);
+			ServiceAssert.isTrue(count > 0, Codes.MemberNotFound);
+
+			InputStream inputStream = inputPart
+					.getBody(InputStream.class, null);
+			byte[] bytes = IOUtils.toByteArray(inputStream);
+			writeFile(bytes, savedFilePath);
+
+		} catch (IOException e) {
+			logger.error("Save the uploaded avator error.", e);
+			throw new ServiceBizException(Codes.AvatorSaveFailure);
+		}
+
+	}
+
+	private String getFileName(MultivaluedMap<String, String> header) {
+		String[] contentDisposition = header.getFirst("Content-Disposition")
+				.split(";");
+		for (String filename : contentDisposition) {
+			if ((filename.trim().startsWith("filename"))) {
+				String[] name = filename.split("=");
+				String finalFileName = name[1].trim().replaceAll("\"", "");
+				return finalFileName;
+			}
+		}
+		return "unknown";
+	}
+
+	// save to somewhere
+	private void writeFile(byte[] content, String filename) throws IOException {
+		File file = new File(filename);
+		if (!file.exists()) {
+			file.createNewFile();
+		}
+		FileOutputStream fop = new FileOutputStream(file);
+		fop.write(content);
+		fop.flush();
+		fop.close();
 	}
 
 	@GET
 	@Path("/mobile")
 	public void prepareMobile(@QueryParam("mobile") String mobile) {
-
+		String authcode = Integer.toString(RandomUtils.nextInt(1000000));
+		memberProfileCacher.saveAuthcode(mobile, authcode);
+		// 发送通知
 	}
 
 	@PUT
 	@Path("/mobile")
 	public void verifyMobile(@QueryParam("mobile") String mobile,
 			@QueryParam("code") String authCode) {
-
+		String cachedCode = memberProfileCacher.getAucthCode(mobile);
+		ServiceAssert.notNull(cachedCode, Codes.MobileAuthCodeNotFound);
+		ServiceAssert.isTrue(cachedCode.equals(authCode),
+				Codes.MobileAuthCodeError);
+		memberProfileCacher.deleteAucthCode(mobile);
 	}
 
 	@POST
@@ -95,7 +255,12 @@ public class MemberService {
 	public void bindMobile(@QueryParam("id") Long id,
 			@QueryParam("mobile") String mobile,
 			@QueryParam("code") String authCode) {
-
+		this.verifyMobile(mobile, authCode);
+		MemberProfile profile = new MemberProfile();
+		profile.setId(id);
+		profile.setMobile(mobile);
+		int count = memberProfileMapper.updateByPrimaryKeySelective(profile);
+		ServiceAssert.isTrue(count > 0, Codes.MemberNotFound);
 	}
 
 }

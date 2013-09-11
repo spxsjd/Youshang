@@ -44,6 +44,7 @@ public class ConfigurationInitializer implements ServletContextListener {
 	 */
 	@Override
 	public void contextInitialized(ServletContextEvent event) {
+		logger.info("Initalize the system config......");
 		ServletContext servletContext = event.getServletContext();
 		String param = servletContext.getInitParameter("initializers");
 		try {

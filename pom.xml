@@ -15,7 +15,7 @@
 		<maven.test.skip>true</maven.test.skip>
 		<java.source.version>1.6</java.source.version>
 		<java.target.version>1.6</java.target.version>
-		<resteasy.framework.version>2.3.3.Final</resteasy.framework.version>
+		<resteasy.framework.version>3.0.4.Final</resteasy.framework.version>
 		<spring.framework.version>3.0.5.RELEASE</spring.framework.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
@@ -24,7 +24,7 @@
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
-			<version>4.10</version>
+			<version>4.11</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -186,6 +186,18 @@
 		</dependency>
 		<dependency>
 			<groupId>org.jboss.resteasy</groupId>
+			<artifactId>resteasy-multipart-provider</artifactId>
+			<version>3.0.2.Final</version>
+		</dependency>
+		<!--
+		<dependency>
+			<groupId>org.jboss.resteasy</groupId>
+			<artifactId>resteasy-jettison-provider</artifactId>
+			<version>${resteasy.framework.version}</version>
+		</dependency>
+		-->
+		<dependency>
+			<groupId>org.jboss.resteasy</groupId>
 			<artifactId>resteasy-jackson-provider</artifactId>
 			<version>${resteasy.framework.version}</version>
 		</dependency>
@@ -234,6 +246,21 @@
 			<version>2.4</version>
 			<classifier>jdk15</classifier>
 		</dependency>
+		<dependency>
+			<groupId>redis.clients</groupId>
+			<artifactId>jedis</artifactId>
+			<version>2.1.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.data</groupId>
+			<artifactId>spring-data-redis</artifactId>
+			<version>1.0.6.RELEASE</version>
+		</dependency>
+		<dependency>
+	    	<groupId>org.springframework.integration</groupId>
+	    	<artifactId>spring-integration-redis</artifactId>
+	    	<version>2.2.4.RELEASE</version>
+	    </dependency>
 	</dependencies>
 
 	<build>

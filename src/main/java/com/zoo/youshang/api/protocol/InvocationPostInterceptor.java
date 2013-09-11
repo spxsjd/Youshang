@@ -3,7 +3,6 @@
  */
 package com.zoo.youshang.api.protocol;
 
-
 import javax.ws.rs.ext.Provider;
 
 import org.jboss.resteasy.annotations.interception.ServerInterceptor;
@@ -19,6 +18,7 @@ import com.zoo.youshang.api.data.ServiceEntity;
  * @author sunpeng.peng
  * 
  */
+@SuppressWarnings("deprecation")
 @Provider
 @ServerInterceptor
 public class InvocationPostInterceptor implements PostProcessInterceptor {
@@ -48,7 +48,10 @@ public class InvocationPostInterceptor implements PostProcessInterceptor {
 			} else {
 				ServiceEntity serviceEntity = new ServiceEntity();
 				response.setEntity(serviceEntity);
+				response.setStatus(200);
 			}
+		} catch (Exception e) {
+			logger.error("Handle the resule error......", e);
 			// InvocationLogger.getInstance().log(response);
 		} finally {
 			MDC.clear();
