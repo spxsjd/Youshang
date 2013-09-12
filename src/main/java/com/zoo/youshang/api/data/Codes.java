@@ -15,11 +15,14 @@ public enum Codes implements ServiceCode {
 			"Mobile or Weibo has exist"), MemberPasswordError(-120,
 			"Requested password error"), MobileAuthCodeNotFound(-130,
 			"Mobile authcode not found"), MobileAuthCodeError(-140,
-					"Mobile authcode error"), AvatorTypeInvalid(-150,
-							"Avator type invalid"), AvatorSaveFailure(-160,
-									"Avator save failure"),AvatorNotExist(-160,
-											"Avator not found"),AvatorNotUpload(-170,
-													"Not upload the avator file");
+			"Mobile authcode error"), AvatorTypeInvalid(-150,
+			"Avator type invalid"), AvatorSaveFailure(-160,
+			"Avator save failure"), AvatorNotExist(-160, "Avator not found"), AvatorNotUpload(
+			-170, "Not upload the avator file"), TaskNotFound(-220,
+					"Task not found"),TaskMediumTypeInvalid(-270,
+			"Task medium file type invalid"),TaskMediumSaveFailure(-280,
+					"Task medium file save failure"),TaskHasBeenAdopted(-250,
+							"Task has bean adopted");
 
 	private Integer code;
 	private String message;

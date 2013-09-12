@@ -11,7 +11,7 @@ USE `youshang` ;
 DROP TABLE IF EXISTS `youshang`.`member_profile` ;
 
 CREATE  TABLE IF NOT EXISTS `youshang`.`member_profile` (
-  `id` INT NOT NULL ,
+  `id` INT NOT NULL AUTO_INCREMENT ,
   `username` VARCHAR(64) NULL COMMENT '用户名称' ,
   `mobile` VARCHAR(32) NULL COMMENT '移动号码' ,
   `weibo` VARCHAR(128) NULL COMMENT 'Sina微博号' ,
@@ -34,7 +34,7 @@ ENGINE = InnoDB;
 DROP TABLE IF EXISTS `youshang`.`task_profile` ;
 
 CREATE  TABLE IF NOT EXISTS `youshang`.`task_profile` (
-  `id` INT NOT NULL ,
+  `id` INT NOT NULL AUTO_INCREMENT ,
   `sponsor_id` INT NULL COMMENT '任务发起人ID' ,
   `executor_id` INT NULL COMMENT '任务执行者ID' ,
   `reward` DECIMAL(10,2) NULL COMMENT '酬金，RMB' ,
@@ -56,7 +56,7 @@ ENGINE = InnoDB;
 DROP TABLE IF EXISTS `youshang`.`task_acceptance` ;
 
 CREATE  TABLE IF NOT EXISTS `youshang`.`task_acceptance` (
-  `id` INT NOT NULL ,
+  `id` INT NOT NULL AUTO_INCREMENT ,
   `task_id` INT NULL COMMENT '任务ID' ,
   `acceptor_id` INT NULL COMMENT '接受者ID' ,
   `create_time` DATETIME NULL ,
@@ -72,7 +72,7 @@ ENGINE = InnoDB;
 DROP TABLE IF EXISTS `youshang`.`comment` ;
 
 CREATE  TABLE IF NOT EXISTS `youshang`.`comment` (
-  `id` INT NOT NULL ,
+  `id` INT NOT NULL AUTO_INCREMENT ,
   `commenter_id` INT NULL COMMENT '评价者ID' ,
   `assessee_id` INT NULL COMMENT '被评价者ID' ,
   `task_id` INT NULL COMMENT '关联任务ID' ,

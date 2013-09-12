@@ -6,9 +6,7 @@ package com.zoo.youshang.api;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.Arrays;
 import java.util.Date;
@@ -23,10 +21,8 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.RandomUtils;
 import org.jboss.resteasy.annotations.Form;
@@ -42,6 +38,7 @@ import com.zoo.youshang.api.error.ServiceAssert;
 import com.zoo.youshang.api.error.ServiceAssert.Executor;
 import com.zoo.youshang.api.error.ServiceBizException;
 import com.zoo.youshang.api.protocol.BigFileOutputStream;
+import com.zoo.youshang.api.protocol.FormFileUploadHelper;
 import com.zoo.youshang.cache.MemberProfileCacher;
 import com.zoo.youshang.config.Configuration;
 import com.zoo.youshang.config.ConfigurationItem;
@@ -123,7 +120,7 @@ public class MemberService {
 
 	@PUT
 	@Path("/login")
-	public void login(@QueryParam("mobile") String mobile,
+	public MemberProfile login(@QueryParam("mobile") String mobile,
 			@QueryParam("password") String password) {
 		MemberProfileExample example = new MemberProfileExample();
 		example.createCriteria().andMobileEqualTo(mobile);
@@ -133,6 +130,7 @@ public class MemberService {
 		String md5password = MD5Util.encode(password);
 		ServiceAssert.isTrue(md5password.equals(profile.getPassword()),
 				Codes.MemberPasswordError);
+		return profile;
 	}
 
 	@PUT
@@ -176,9 +174,7 @@ public class MemberService {
 		List<InputPart> inputParts = uploadForm.get("file");// 从form表单中获取name="file"的元素内容
 		ServiceAssert.isTrue(inputParts.size() > 0, Codes.AvatorNotUpload);
 		InputPart inputPart = inputParts.get(0);
-		MultivaluedMap<String, String> header = inputPart.getHeaders();
-		String fileName = getFileName(header);
-		String fileType = fileName.substring(fileName.indexOf('.'));
+		String fileType = FormFileUploadHelper.getFileType(inputPart);
 		ServiceAssert.isTrue(this.avatorTypes.contains(fileType),
 				Codes.AvatorTypeInvalid);
 		try {
@@ -194,41 +190,11 @@ public class MemberService {
 					.updateByPrimaryKeySelective(profile);
 			ServiceAssert.isTrue(count > 0, Codes.MemberNotFound);
 
-			InputStream inputStream = inputPart
-					.getBody(InputStream.class, null);
-			byte[] bytes = IOUtils.toByteArray(inputStream);
-			writeFile(bytes, savedFilePath);
-
+			FormFileUploadHelper.saveFile(inputPart, savedFilePath);
 		} catch (IOException e) {
 			logger.error("Save the uploaded avator error.", e);
 			throw new ServiceBizException(Codes.AvatorSaveFailure);
 		}
-
-	}
-
-	private String getFileName(MultivaluedMap<String, String> header) {
-		String[] contentDisposition = header.getFirst("Content-Disposition")
-				.split(";");
-		for (String filename : contentDisposition) {
-			if ((filename.trim().startsWith("filename"))) {
-				String[] name = filename.split("=");
-				String finalFileName = name[1].trim().replaceAll("\"", "");
-				return finalFileName;
-			}
-		}
-		return "unknown";
-	}
-
-	// save to somewhere
-	private void writeFile(byte[] content, String filename) throws IOException {
-		File file = new File(filename);
-		if (!file.exists()) {
-			file.createNewFile();
-		}
-		FileOutputStream fop = new FileOutputStream(file);
-		fop.write(content);
-		fop.flush();
-		fop.close();
 	}
 
 	@GET
