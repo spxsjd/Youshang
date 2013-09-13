@@ -52,6 +52,7 @@ import com.zoo.youshang.util.MD5Util;
  * 
  */
 @Path("/member")
+@Produces(MediaType.APPLICATION_JSON)
 public class MemberService {
 
 	private static final Logger logger = LoggerFactory
@@ -88,11 +89,8 @@ public class MemberService {
 	@POST
 	public MemberProfile register(@Form MemberRegisterRequest request) {
 		logger.debug("Register member: " + request.toString());
-		Date current = new Date();
 		final MemberProfile profile = new MemberProfile();
 		profile.setAvatarPath(this.avatorDefaultFile);
-		profile.setCreateTime(current);
-		profile.setLastLoginTime(current);
 		profile.setMobile(request.getMobile());
 		profile.setName(request.getName());
 		profile.setPassword(MD5Util.encode(request.getPassword()));
@@ -101,13 +99,13 @@ public class MemberService {
 		ServiceAssert.checkExecutor(new Executor<Void>() {
 			@Override
 			public Void execute() {
-				memberProfileMapper.insert(profile);
+				memberProfileMapper.insertSelective(profile);
 				return null;
 			}
 
 		}, SQLIntegrityConstraintViolationException.class,
 				Codes.MemberIdentityHasExist);
-		return profile;
+		return memberProfileMapper.selectByPrimaryKey(profile.getId());
 	}
 
 	@GET
@@ -130,6 +128,10 @@ public class MemberService {
 		String md5password = MD5Util.encode(password);
 		ServiceAssert.isTrue(md5password.equals(profile.getPassword()),
 				Codes.MemberPasswordError);
+		MemberProfile updatedProfile = new MemberProfile();
+		updatedProfile.setId(profile.getId());
+		updatedProfile.setLastLoginTime(new Date());
+		memberProfileMapper.updateByPrimaryKeySelective(updatedProfile);
 		return profile;
 	}
 
@@ -178,7 +180,7 @@ public class MemberService {
 		ServiceAssert.isTrue(this.avatorTypes.contains(fileType),
 				Codes.AvatorTypeInvalid);
 		try {
-			
+
 			String savedFileName = id.toString() + fileType;
 			String savedFilePath = this.avatorBasicPath
 					+ System.getProperty("file.separator") + savedFileName;

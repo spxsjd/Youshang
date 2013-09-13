@@ -28,9 +28,8 @@ public class ExceptionMapper implements
 	@Override
 	public Response toResponse(Throwable exception) {
 		ServiceEntity entity;
-		if (exception instanceof ServiceBizException) {
-			entity = new ServiceEntity(
-					((ServiceBizException) exception).getServiceCode());
+		if (exception instanceof AbstractServiceException) {
+			entity = new ServiceEntity(((AbstractServiceException) exception).getServiceCode());
 		} else {
 			logger.error("Service exception[type => " + exception.getClass()
 					+ ", message => " + exception.getMessage() + "]: ",

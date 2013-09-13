@@ -3,12 +3,15 @@
  */
 package com.zoo.youshang.api.error;
 
+import com.zoo.youshang.api.data.Codes;
+import com.zoo.youshang.api.data.ServiceCode;
+
 
 /**
  * @author sunpeng
  * 
  */
-public class UnkownServiceException extends RuntimeException {
+public class UnkownServiceException extends AbstractServiceException {
 
 	/**
 	 * 
@@ -23,6 +26,11 @@ public class UnkownServiceException extends RuntimeException {
 	@Override
 	public String getMessage() {
 		return "The Service unkown error: "+ super.getMessage();
+	}
+
+	@Override
+	public ServiceCode getServiceCode() {
+		return Codes.UnkownError;
 	}
 
 }

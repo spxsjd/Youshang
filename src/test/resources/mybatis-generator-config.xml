@@ -39,20 +39,26 @@
 			<columnOverride column="website" javaType="java.lang.Boolean" />
 		</table>
         -->
+        <!--
         <table schema="" tableName="member_profile" domainObjectName="MemberProfile">
+            <generatedKey column="id" sqlStatement="MySql" identity="true" />
 			<columnOverride column="id" javaType="java.lang.Long" />
 		</table>
 		<table schema="" tableName="task_profile" domainObjectName="TaskProfile">
+			<generatedKey column="id" sqlStatement="MySql" identity="true" />
 			<columnOverride column="id" javaType="java.lang.Long" />
 			<columnOverride column="sponsor_id" javaType="java.lang.Long" />
 			<columnOverride column="executor_id" javaType="java.lang.Long" />
 		</table>
 		<table schema="" tableName="task_acceptance" domainObjectName="TaskAcceptance">
+			<generatedKey column="id" sqlStatement="MySql" identity="true" />
 			<columnOverride column="id" javaType="java.lang.Long" />
 			<columnOverride column="task_id" javaType="java.lang.Long" />
 			<columnOverride column="acceptor_id" javaType="java.lang.Long" />
 		</table>
+		-->
 		<table schema="" tableName="comment" domainObjectName="Comment">
+			<generatedKey column="id" sqlStatement="MySql" identity="true" />
 			<columnOverride column="id" javaType="java.lang.Long" />
 			<columnOverride column="commenter_id" javaType="java.lang.Long" />
 			<columnOverride column="assessee_id" javaType="java.lang.Long" />

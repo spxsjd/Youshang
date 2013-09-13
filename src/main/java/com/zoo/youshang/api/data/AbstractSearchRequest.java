@@ -3,6 +3,7 @@
  */
 package com.zoo.youshang.api.data;
 
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.QueryParam;
 
 /**
@@ -12,12 +13,13 @@ import javax.ws.rs.QueryParam;
 public abstract class AbstractSearchRequest {
 
 	@QueryParam("offset")
-	private Integer offset;
+	@DefaultValue("0")
+	private Integer offset = 0;
 
 	@QueryParam("limit")
-	private Integer limit;
+	@DefaultValue("10")
+	private Integer limit = 10;
 
-	
 	public Integer getOffset() {
 		return offset;
 	}

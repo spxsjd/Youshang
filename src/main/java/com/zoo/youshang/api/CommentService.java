@@ -3,7 +3,10 @@
  */
 package com.zoo.youshang.api;
 
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
 
 import org.jboss.resteasy.annotations.Form;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +24,7 @@ import com.zoo.youshang.persistence.TaskProfileMapper;
  * 
  */
 @Path("/comment")
+@Produces(MediaType.APPLICATION_JSON)
 public class CommentService {
 
 	@Autowired
@@ -28,6 +32,7 @@ public class CommentService {
 	@Autowired
 	private TaskProfileMapper taskProfileMapper;
 
+	@POST
 	public Comment addComment(@Form AddCommentRequest request) {
 		TaskProfile taskProfile = taskProfileMapper.selectByPrimaryKey(request
 				.getTaskId());
@@ -39,8 +44,8 @@ public class CommentService {
 		comment.setCommenterId(request.getCommenterId());
 		comment.setDegree(request.getDegree());
 		comment.setContents(request.getContents());
-		commentMapper.insert(comment);
+		commentMapper.insertSelective(comment);
 
-		return comment;
+		return commentMapper.selectByPrimaryKey(comment.getId());
 	}
 }

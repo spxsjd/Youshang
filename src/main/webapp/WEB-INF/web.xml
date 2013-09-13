@@ -8,12 +8,12 @@
 		<param-value>END</param-value> </context-param> -->
 	<!-- <context-param> <param-name>resteasy.scan.resources</param-name> <param-value>true</param-value> 
 		</context-param> 
-	
+		--> 
 	<context-param>
 	  <param-name>resteasy.media.type.mappings</param-name>
 	  <param-value>json:application/json</param-value>
 	</context-param>
-		--> 
+	
 	<context-param>
 		<param-name>resteasy.logger.type</param-name>
 		<param-value>SLF4J</param-value>
@@ -21,6 +21,7 @@
 	<context-param>
 		<param-name>resteasy.providers</param-name>
 		<param-value>com.zoo.youshang.api.error.ExceptionMapper
+		,com.zoo.youshang.api.injection.DateStringConverter
 		,com.zoo.youshang.api.protocol.ResolveResultInterceptor
 	</param-value>
 	</context-param>

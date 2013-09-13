@@ -7,7 +7,6 @@ import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -17,6 +16,7 @@ import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
@@ -47,6 +47,7 @@ import com.zoo.youshang.persistence.TaskProfileMapper;
  * 
  */
 @Path("/task")
+@Produces(MediaType.APPLICATION_JSON)
 public class TaskService {
 
 	private static final Logger logger = LoggerFactory
@@ -107,40 +108,45 @@ public class TaskService {
 		profile.setStatus(TaskStatus.PENDING);
 		profile.setReward(BigDecimal.valueOf(request.getReward()));
 		profile.setLocation(request.getLocation());
-		profile.setEndTime(request.getEndTime());
+		profile.setEndTime(request.getEndDateTime());
 		profile.setDescription(request.getDescription());
-		profile.setCreateTime(new Date());
-		taskProfileMapper.insert(profile);
-
+		taskProfileMapper.insertSelective(profile);
+		Long profileId = profile.getId();
 		String taskMediumDirectory = this.mediumBasicPath
-				+ System.getProperty("file.separator")
-				+ profile.getId().toString();
+				+ System.getProperty("file.separator") + profileId.toString();
 		(new File(taskMediumDirectory)).mkdir();
 
 		try {
+			TaskProfile updatedProfile = new TaskProfile();
+			updatedProfile.setId(profileId);
+			boolean shouldToUpdate = false;
 			Map<String, List<InputPart>> uploadForm = formDataInput
 					.getFormDataMap();// 提交的form表单
 			List<InputPart> inputParts;// 从form表单中获取name="file"的元素内容
 			if ((inputParts = uploadForm.get("photo")) != null
 					&& !inputParts.isEmpty()) {
 				String photoFile = saveTaskMediaFile(inputParts.get(0),
-						taskMediumDirectory, profile.getId());
-				profile.setPhotoPath(photoFile);
+						taskMediumDirectory, profileId);
+				updatedProfile.setPhotoPath(photoFile);
+				shouldToUpdate = true;
 
 			}
 			if ((inputParts = uploadForm.get("record")) != null
 					&& !inputParts.isEmpty()) {
 				String recordFile = saveTaskMediaFile(inputParts.get(0),
-						taskMediumDirectory, profile.getId());
-				profile.setRecordPath(recordFile);
+						taskMediumDirectory, profileId);
+				updatedProfile.setRecordPath(recordFile);
+				shouldToUpdate = true;
 			}
-			taskProfileMapper.updateByPrimaryKey(profile);
+			if (shouldToUpdate) {
+				taskProfileMapper.updateByPrimaryKeySelective(updatedProfile);
+			}
 		} catch (Exception e) {
 			logger.error("Save task medium file error.", e);
-			taskProfileMapper.deleteByPrimaryKey(profile.getId());
+			taskProfileMapper.deleteByPrimaryKey(profileId);
 			throw new ServiceBizException(Codes.TaskMediumSaveFailure);
 		}
-		return profile;
+		return taskProfileMapper.selectByPrimaryKey(profileId);
 	}
 
 	protected String saveTaskMediaFile(InputPart inputPart,

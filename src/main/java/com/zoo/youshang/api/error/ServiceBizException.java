@@ -9,7 +9,7 @@ import com.zoo.youshang.api.data.ServiceCode;
  * @author sunpeng
  * 
  */
-public class ServiceBizException extends RuntimeException {
+public class ServiceBizException extends AbstractServiceException {
 
 	/**
 	 * 

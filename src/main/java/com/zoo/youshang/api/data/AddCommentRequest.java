@@ -11,7 +11,7 @@ import javax.ws.rs.QueryParam;
  */
 public class AddCommentRequest {
 
-	@QueryParam("location")
+	@QueryParam("taskId")
 	private Long taskId;
 	
 	@QueryParam("commenterId")

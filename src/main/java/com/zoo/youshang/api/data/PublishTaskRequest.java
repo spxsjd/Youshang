@@ -20,7 +20,7 @@ public class PublishTaskRequest {
 	private Long sponsorId;
 
 	@QueryParam("endTime")
-	private Date endTime;
+	private Long endTime;
 
 	@QueryParam("reward")
 	private Double reward;
@@ -44,11 +44,15 @@ public class PublishTaskRequest {
 		this.sponsorId = sponsorId;
 	}
 
-	public Date getEndTime() {
+	public Long getEndTime() {
 		return endTime;
 	}
 
-	public void setEndTime(Date endTime) {
+	public Date getEndDateTime() {
+		return new Date(endTime);
+	}
+
+	public void setEndTime(Long endTime) {
 		this.endTime = endTime;
 	}
 
