@@ -56,13 +56,19 @@
 			<columnOverride column="task_id" javaType="java.lang.Long" />
 			<columnOverride column="acceptor_id" javaType="java.lang.Long" />
 		</table>
-		-->
+		
 		<table schema="" tableName="comment" domainObjectName="Comment">
 			<generatedKey column="id" sqlStatement="MySql" identity="true" />
 			<columnOverride column="id" javaType="java.lang.Long" />
 			<columnOverride column="commenter_id" javaType="java.lang.Long" />
 			<columnOverride column="assessee_id" javaType="java.lang.Long" />
 			<columnOverride column="task_id" javaType="java.lang.Long" />
+		</table>
+		-->
+		<table schema="" tableName="task_detail" domainObjectName="TaskDetail" enableInsert="false" enableUpdateByPrimaryKey="false" enableDeleteByPrimaryKey="false" enableDeleteByExample="false" enableUpdateByExample="false">
+			<columnOverride column="id" javaType="java.lang.Long" />
+			<columnOverride column="sponsor_id" javaType="java.lang.Long" />
+			<columnOverride column="executor_id" javaType="java.lang.Long" />
 		</table>
 	</context>
 </generatorConfiguration>

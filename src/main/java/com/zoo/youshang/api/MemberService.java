@@ -45,7 +45,6 @@ import com.zoo.youshang.config.ConfigurationItem;
 import com.zoo.youshang.entity.MemberProfile;
 import com.zoo.youshang.entity.MemberProfileExample;
 import com.zoo.youshang.persistence.MemberProfileMapper;
-import com.zoo.youshang.util.MD5Util;
 
 /**
  * @author sunpeng
@@ -93,7 +92,6 @@ public class MemberService {
 		profile.setAvatarPath(this.avatorDefaultFile);
 		profile.setMobile(request.getMobile());
 		profile.setName(request.getName());
-		profile.setPassword(MD5Util.encode(request.getPassword()));
 		profile.setUsername(request.getUsername());
 		profile.setWeibo(request.getWeibo());
 		ServiceAssert.checkExecutor(new Executor<Void>() {
@@ -108,37 +106,22 @@ public class MemberService {
 		return memberProfileMapper.selectByPrimaryKey(profile.getId());
 	}
 
+	@PUT
+	public void modify(@QueryParam("id") Long id,
+			@QueryParam("username") String username) {
+		MemberProfile profile = new MemberProfile();
+		profile.setId(id);
+		profile.setUsername(username);
+		int count = memberProfileMapper.updateByPrimaryKeySelective(profile);
+		ServiceAssert.isTrue(count > 0, Codes.MemberNotFound);
+	}
+
 	@GET
 	public MemberProfile query(@QueryParam("id") Long id) {
 		logger.debug("Query member profile......");
 		MemberProfile profile = memberProfileMapper.selectByPrimaryKey(id);
 		ServiceAssert.notNull(profile, Codes.MemberNotFound);
 		return profile;
-	}
-
-	@PUT
-	@Path("/login")
-	public MemberProfile login(@QueryParam("mobile") String mobile,
-			@QueryParam("password") String password) {
-		MemberProfileExample example = new MemberProfileExample();
-		example.createCriteria().andMobileEqualTo(mobile);
-		List<MemberProfile> list = memberProfileMapper.selectByExample(example);
-		ServiceAssert.notEmpty(list, Codes.MemberNotFound);
-		MemberProfile profile = list.get(0);
-		String md5password = MD5Util.encode(password);
-		ServiceAssert.isTrue(md5password.equals(profile.getPassword()),
-				Codes.MemberPasswordError);
-		MemberProfile updatedProfile = new MemberProfile();
-		updatedProfile.setId(profile.getId());
-		updatedProfile.setLastLoginTime(new Date());
-		memberProfileMapper.updateByPrimaryKeySelective(updatedProfile);
-		return profile;
-	}
-
-	@PUT
-	@Path("/logout")
-	public void logout(@QueryParam("id") String id) {
-
 	}
 
 	@GET
@@ -199,23 +182,44 @@ public class MemberService {
 		}
 	}
 
+	@PUT
+	@Path("/weibo")
+	public MemberProfile loginByWeibo(@QueryParam("weibo") String weibo) {
+		logger.debug("Query member profile......");
+		MemberProfileExample example = new MemberProfileExample();
+		example.createCriteria().andWeiboEqualTo(weibo);
+		List<MemberProfile> list = memberProfileMapper
+				.selectByExample(example);
+		ServiceAssert.notEmpty(list, Codes.MemberNotFound);
+		return updateLastLoginTime(list.get(0));
+	}
+
+	@PUT
+	@Path("/mobile")
+	public MemberProfile loginByMobile(@QueryParam("mobile") String mobile,
+			@QueryParam("code") String code) {
+		verifyMobile(mobile, code);
+		MemberProfileExample example = new MemberProfileExample();
+		example.createCriteria().andMobileEqualTo(mobile);
+		List<MemberProfile> list = memberProfileMapper.selectByExample(example);
+		ServiceAssert.notEmpty(list, Codes.MobileOkButMemberNotFound);
+		return updateLastLoginTime(list.get(0));
+	}
+
+	protected MemberProfile updateLastLoginTime(MemberProfile profile) {
+		MemberProfile updatedProfile = new MemberProfile();
+		updatedProfile.setId(profile.getId());
+		updatedProfile.setLastLoginTime(new Date());
+		memberProfileMapper.updateByPrimaryKeySelective(updatedProfile);
+		return profile;
+	}
+
 	@GET
 	@Path("/mobile")
 	public void prepareMobile(@QueryParam("mobile") String mobile) {
 		String authcode = Integer.toString(RandomUtils.nextInt(1000000));
 		memberProfileCacher.saveAuthcode(mobile, authcode);
 		// 发送通知
-	}
-
-	@PUT
-	@Path("/mobile")
-	public void verifyMobile(@QueryParam("mobile") String mobile,
-			@QueryParam("code") String authCode) {
-		String cachedCode = memberProfileCacher.getAucthCode(mobile);
-		ServiceAssert.notNull(cachedCode, Codes.MobileAuthCodeNotFound);
-		ServiceAssert.isTrue(cachedCode.equals(authCode),
-				Codes.MobileAuthCodeError);
-		memberProfileCacher.deleteAucthCode(mobile);
 	}
 
 	@POST
@@ -229,6 +233,15 @@ public class MemberService {
 		profile.setMobile(mobile);
 		int count = memberProfileMapper.updateByPrimaryKeySelective(profile);
 		ServiceAssert.isTrue(count > 0, Codes.MemberNotFound);
+	}
+
+	protected void verifyMobile(@QueryParam("mobile") String mobile,
+			@QueryParam("code") String authCode) {
+		String cachedCode = memberProfileCacher.getAucthCode(mobile);
+		ServiceAssert.notNull(cachedCode, Codes.MobileAuthCodeNotFound);
+		ServiceAssert.isTrue(cachedCode.equals(authCode),
+				Codes.MobileAuthCodeError);
+		memberProfileCacher.deleteAucthCode(mobile);
 	}
 
 }

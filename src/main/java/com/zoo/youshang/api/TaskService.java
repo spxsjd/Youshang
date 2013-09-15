@@ -20,6 +20,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.ibatis.session.RowBounds;
 import org.jboss.resteasy.annotations.Form;
 import org.jboss.resteasy.plugins.providers.multipart.InputPart;
@@ -36,10 +37,12 @@ import com.zoo.youshang.api.error.ServiceBizException;
 import com.zoo.youshang.api.protocol.FormFileUploadHelper;
 import com.zoo.youshang.config.Configuration;
 import com.zoo.youshang.config.ConfigurationItem;
+import com.zoo.youshang.entity.TaskDetail;
+import com.zoo.youshang.entity.TaskDetailExample;
 import com.zoo.youshang.entity.TaskProfile;
 import com.zoo.youshang.entity.TaskProfileExample;
-import com.zoo.youshang.entity.TaskProfileExample.Criteria;
 import com.zoo.youshang.entity.TaskStatus;
+import com.zoo.youshang.persistence.TaskDetailMapper;
 import com.zoo.youshang.persistence.TaskProfileMapper;
 
 /**
@@ -54,6 +57,9 @@ public class TaskService {
 			.getLogger(TaskService.class);
 	@Autowired
 	private TaskProfileMapper taskProfileMapper;
+
+	@Autowired
+	private TaskDetailMapper taskDetailMapper;
 
 	private String mediumBasicPath;
 	private List<String> mediumTypes;
@@ -72,28 +78,6 @@ public class TaskService {
 				.getConfigurationValue("upload.task.medium.types",
 						".jpg,.gif,.png").toLowerCase().split(",");
 		this.mediumTypes = Arrays.asList(types);
-
-	}
-
-	@GET
-	@Path("/search")
-	public List<TaskProfile> listTasks(@Form SearchTaskRequest request) {
-		TaskProfileExample example = new TaskProfileExample();
-		Criteria criteria = example.createCriteria();
-		if (request.getStatus() != null) {
-			criteria.andStatusEqualTo(request.getStatus());
-		}
-		if (request.getSponsorId() != null) {
-			criteria.andSponsorIdEqualTo(request.getSponsorId());
-		}
-		if (request.getExecutorId() != null) {
-			criteria.andExecutorIdEqualTo(request.getExecutorId());
-		}
-		example.setOrderByClause("update_time desc");
-		RowBounds rowBounds = new RowBounds(request.getOffset(),
-				request.getLimit());
-		return taskProfileMapper.selectByExampleWithRowbounds(example,
-				rowBounds);
 
 	}
 
@@ -149,6 +133,28 @@ public class TaskService {
 		return taskProfileMapper.selectByPrimaryKey(profileId);
 	}
 
+	@GET
+	@Path("/search")
+	public List<TaskDetail> listTasks(@Form SearchTaskRequest request) {
+		TaskDetailExample example = new TaskDetailExample();
+		TaskDetailExample.Criteria criteria = example.createCriteria();
+		if (request.getStatus() != null) {
+			criteria.andStatusEqualTo(request.getStatus());
+		}
+		if (request.getSponsorId() != null) {
+			criteria.andSponsorIdEqualTo(request.getSponsorId());
+		}
+		if (request.getExecutorId() != null) {
+			criteria.andExecutorIdEqualTo(request.getExecutorId());
+		}
+		example.setOrderByClause("update_time desc");
+		RowBounds rowBounds = new RowBounds(request.getOffset(),
+				request.getLimit());
+		return taskDetailMapper
+				.selectByExampleWithRowbounds(example, rowBounds);
+
+	}
+
 	protected String saveTaskMediaFile(InputPart inputPart,
 			String taskMediumDirectory, Long taskId) throws IOException {
 		String fileType = FormFileUploadHelper.getFileType(inputPart);
@@ -163,11 +169,22 @@ public class TaskService {
 	}
 
 	@GET
-	public TaskProfile detailTask(@QueryParam("id") Long id) {
-		return taskProfileMapper.selectByPrimaryKey(id);
+	public TaskDetail detailTask(@QueryParam("id") Long id) {
+		TaskDetailExample example = new TaskDetailExample();
+		example.createCriteria().andIdEqualTo(id);
+		List<TaskDetail> list = taskDetailMapper.selectByExample(example);
+		ServiceAssert.notEmpty(list, Codes.TaskNotFound);
+		return list.get(0);
+	}
+
+	@DELETE
+	public void deleteTask(@QueryParam("id") Long id,
+			@QueryParam("sponsorId") Long sponsorId) {
+
 	}
 
 	@PUT
+	@Path("/adopt")
 	public void adoptTask(@QueryParam("id") Long id,
 			@QueryParam("executorId") Long executorId) {
 		TaskProfile profile = new TaskProfile();
@@ -182,21 +199,102 @@ public class TaskService {
 		ServiceAssert.isTrue(count > 0, Codes.TaskHasBeenAdopted);
 	}
 
-	@DELETE
-	public void deleteTask(@QueryParam("id") Long id,
-			@QueryParam("sponsorId") Long sponsorId) {
+	@PUT
+	@Path("/finish")
+	public void finishTask(@QueryParam("id") Long id) {
+		TaskProfile profile = new TaskProfile();
+		profile.setId(id);
+		profile.setStatus(TaskStatus.CONFIRMING);
 
+		TaskProfileExample example = new TaskProfileExample();
+		example.createCriteria().andIdEqualTo(id).andExecutorIdIsNull();
+		int count = taskProfileMapper
+				.updateByExampleSelective(profile, example);
+		ServiceAssert.isTrue(count > 0, Codes.TaskHasBeenAdopted);
 	}
 
 	@PUT
-	@Path("/finish")
-	public void finishTask(@QueryParam("id") Long id,
-			@QueryParam("executorId") Long executorId) {
-		TaskProfile profile = new TaskProfile();
-		profile.setId(id);
-		profile.setStatus(TaskStatus.FINISH);
+	@Path("/confirm")
+	public void comfirmTask(@QueryParam("id") Long id,
+			@QueryParam("finished") Boolean finished) {
+		Byte status = TaskStatus.FINISHED;
+		TaskProfile profile = taskProfileMapper.selectByPrimaryKey(id);
 
-		taskProfileMapper.updateByPrimaryKeySelective(profile);
+		if (!finished) {
+			status = TaskStatus.UNFINISHED;
+			ServiceAssert.isTrue(
+					profile.getStatus().equals(TaskStatus.CONFIRMING),
+					Codes.TaskStatusNotSupportAction);
+		}
+		TaskProfile updateProfile = new TaskProfile();
+		updateProfile.setId(id);
+		updateProfile.setStatus(status);
+
+		taskProfileMapper.updateByPrimaryKeySelective(updateProfile);
+	}
+
+	@POST
+	@Path("/republish")
+	public TaskProfile republishTask(@QueryParam("id") Long id) {
+		logger.debug("republish new task: " + id);
+		TaskProfile oldProfile = taskProfileMapper.selectByPrimaryKey(id);
+		TaskProfile newProfile = new TaskProfile();
+		newProfile.setSponsorId(oldProfile.getSponsorId());
+		newProfile.setStatus(TaskStatus.PENDING);
+		newProfile.setReward(oldProfile.getReward());
+		newProfile.setLocation(oldProfile.getLocation());
+		newProfile.setEndTime(oldProfile.getEndTime());
+		newProfile.setDescription(oldProfile.getDescription());
+		taskProfileMapper.insertSelective(newProfile);
+		Long profileId = newProfile.getId();
+		String taskMediumDirectory = this.mediumBasicPath
+				+ System.getProperty("file.separator") + profileId.toString();
+		(new File(taskMediumDirectory)).mkdir();
+
+		String oldMediumDirectory = this.mediumBasicPath
+				+ System.getProperty("file.separator")
+				+ oldProfile.getId().toString();
+
+		
+		try {
+			TaskProfile updatedProfile = new TaskProfile();
+			updatedProfile.setId(profileId);
+			String oldMediaPath,mediaPath;
+			boolean shouldToUpdate = false;
+			if ((oldMediaPath = oldProfile.getPhotoPath()) != null && !oldMediaPath.isEmpty()) {
+				mediaPath = copyMediaFile(oldMediumDirectory,oldMediaPath,taskMediumDirectory,profileId);
+				updatedProfile.setPhotoPath(mediaPath);
+				shouldToUpdate =true;
+			}
+			if ((oldMediaPath = oldProfile.getRecordPath()) != null && !oldMediaPath.isEmpty()) {
+				mediaPath = copyMediaFile(oldMediumDirectory,oldMediaPath,taskMediumDirectory,profileId);
+				updatedProfile.setRecordPath(mediaPath);
+				shouldToUpdate =true;
+			}
+			if (shouldToUpdate) {
+				taskProfileMapper.updateByPrimaryKeySelective(updatedProfile);
+			}
+			
+		} catch (Exception e) {
+			logger.error("Save task medium file error.", e);
+			taskProfileMapper.deleteByPrimaryKey(profileId);
+			throw new ServiceBizException(Codes.TaskMediumSaveFailure);
+		}
+		return taskProfileMapper.selectByPrimaryKey(profileId);
+	}
+
+	protected String copyMediaFile(String srcMediumDirectory,
+			String srcMediaPath, String taskMediumDirectory, Long taskId)
+			throws IOException {
+		String oldMediaFullPath = srcMediumDirectory
+				+ System.getProperty("file.separator") + srcMediaPath;
+		String fileType = srcMediaPath.substring(srcMediaPath.indexOf('.'));
+		String fileName = taskId.toString() + fileType;
+		String savedFilePath = taskMediumDirectory
+				+ System.getProperty("file.separator") + fileName;
+		FileUtils.copyFile(new File(oldMediaFullPath), new File(savedFilePath));
+		return fileName;
+
 	}
 
 }

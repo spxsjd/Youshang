@@ -9,9 +9,13 @@ package com.zoo.youshang.entity;
  */
 public interface TaskStatus {
 
-	public static final Byte PENDING = 0; // 初始状态
+	public static final Byte PENDING = 0; // 悬赏中
 
-	public static final Byte EXECUTING = 5; // 执行中
+	public static final Byte EXECUTING = 3; // 待完成
+
+	public static final Byte CONFIRMING = 5; // 待确定
+
+	public static final Byte UNFINISHED = 7; // 未完成
 	
-	public static final Byte FINISH = 10; // 完成
+	public static final Byte FINISHED = 10; // 已完成
 }

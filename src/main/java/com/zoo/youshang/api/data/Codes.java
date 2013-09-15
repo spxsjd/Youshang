@@ -18,12 +18,13 @@ public enum Codes implements ServiceCode {
 			"Mobile authcode not found"), MobileAuthCodeError(-140,
 			"Mobile authcode error"), AvatorTypeInvalid(-150,
 			"Avator type invalid"), AvatorSaveFailure(-160,
-			"Avator save failure"), AvatorNotExist(-160, "Avator not found"), AvatorNotUpload(
-			-170, "Not upload the avator file"), TaskNotFound(-220,
+			"Avator save failure"), AvatorNotExist(-180, "Avator not found"), AvatorNotUpload(
+			-170, "Not upload the avator file"), MobileOkButMemberNotFound(-190, "Mobile valid, But Member not found"), TaskNotFound(-220,
 			"Task not found"), TaskMediumTypeInvalid(-270,
 			"Task medium file type invalid"), TaskMediumSaveFailure(-280,
 			"Task medium file save failure"), TaskHasBeenAdopted(-250,
-			"Task has bean adopted");
+			"Task has bean adopted"), TaskStatusNotSupportAction(-230,
+					"Task status not support action");
 
 	private Integer code;
 	private String message;
