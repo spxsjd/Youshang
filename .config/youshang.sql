@@ -19,7 +19,7 @@ CREATE  TABLE IF NOT EXISTS `youshang`.`member_profile` (
   `name` VARCHAR(128) NULL COMMENT '用户真实姓名' ,
   `last_login_time` DATETIME NULL COMMENT '最近登陆时间' ,
   `avatar_path` VARCHAR(128) NULL COMMENT '头像路径' ,
-  `create_time` DATETIME NULL DEFAULT CURRENT_TIMESTAMP ,
+  `create_time` DATETIME NULL ,
   `update_time` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP ,
   PRIMARY KEY (`id`) ,
   UNIQUE INDEX `MEMBER_PROFILE_WEIBO` (`weibo` ASC) ,
@@ -43,7 +43,7 @@ CREATE  TABLE IF NOT EXISTS `youshang`.`task_profile` (
   `location` VARCHAR(256) NULL COMMENT '任务地理位置' ,
   `photo_path` VARCHAR(256) NULL COMMENT '照片存放路径' ,
   `record_path` VARCHAR(256) NULL COMMENT '录音存放路径' ,
-  `create_time` DATETIME NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间' ,
+  `create_time` DATETIME NULL  COMMENT '创建时间' ,
   `update_time` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间' ,
   PRIMARY KEY (`id`) )
 ENGINE = InnoDB;
@@ -77,7 +77,7 @@ CREATE  TABLE IF NOT EXISTS `youshang`.`comment` (
   `task_id` INT NULL COMMENT '关联任务ID' ,
   `degree` TINYINT NULL COMMENT '评价等级' ,
   `contents` VARCHAR(2048) NULL COMMENT '描述内容' ,
-  `create_time` DATETIME NULL DEFAULT CURRENT_TIMESTAMP ,
+  `create_time` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ,
   PRIMARY KEY (`id`) )
 ENGINE = InnoDB;
 
@@ -97,8 +97,8 @@ USE `youshang`;
 CREATE  OR REPLACE VIEW `youshang`.`task_detail` AS 
 select t.*,s.username as sponsor_name,s.mobile as sponsor_mobile,s.avatar_path as sponsor_avatar_path,
 	e.username as executor_name,e.mobile as executor_mobile,e.avatar_path as executor_avatar_path
-from task_profile t left outer join member_profile s on t.sponsorId=s.id 
-left outer join member_profile e on t.executorId=e.id
+from task_profile t left outer join member_profile s on t.sponsor_id=s.id 
+left outer join member_profile e on t.executor_id=e.id
 
 ;
 
